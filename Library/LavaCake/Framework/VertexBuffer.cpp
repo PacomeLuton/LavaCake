@@ -18,7 +18,7 @@ namespace LavaCake {
       for (size_t t = 0; t < m_attributeDescriptions.size(); t++) {
         m_attributeDescriptions[t].binding = binding;
       }
-
+      
       m_bindingDescriptions.push_back(
         {
               binding,
@@ -59,6 +59,59 @@ namespace LavaCake {
       m_indicesSize = (uint32_t)indices.size();
     };
 
+
+
+    VertexBuffer::VertexBuffer(
+      const  Queue& queue,
+      CommandBuffer& cmdBuff,
+      LavaCake::Geometry::Mesh_t& m,
+      uint32_t binding,
+      VkVertexInputRate inputRate,
+      VkBufferUsageFlags otherUsage) {
+
+      m_topology = m.getTopology();
+      m_stride = (uint32_t)m.vertexSize();
+      m_attributeDescriptions = m.VkDescription();
+      for (size_t t = 0; t < m_attributeDescriptions.size(); t++) {
+        m_attributeDescriptions[t].binding = binding;
+      }
+      
+      m_bindingDescriptions.push_back(
+        {
+              binding,
+              uint32_t(m_stride * sizeof(float)),
+              inputRate
+        });
+
+
+      std::vector<float> vertices = std::vector<float>(m.vertices());
+      std::vector<uint32_t> indices = std::vector<uint32_t>(m.indices());
+      
+
+      m_indexed = m.isIndexed();
+      /*
+        if (m_indexed) {
+          for (size_t j = 0; j < m.indices().size(); j++) {
+            indices.push_back(m.indices()[j]);
+          }
+        vertices.insert(vertices.end(), m.vertices().begin(), m.vertices().end());
+      }*/
+  
+
+
+      if (vertices.size() == 0)return;
+
+      m_vertexBuffer = std::make_shared<Buffer>(queue, cmdBuff, vertices, (VkBufferUsageFlagBits)(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | otherUsage), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_FORMAT_R32_SFLOAT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+
+      if (m_indexed) {
+
+        m_indexBuffer = std::make_shared<Buffer>(queue, cmdBuff, indices, (VkBufferUsageFlagBits)(VK_BUFFER_USAGE_INDEX_BUFFER_BIT | otherUsage), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_FORMAT_R32_UINT, VK_ACCESS_INDEX_READ_BIT);
+
+      }
+
+      m_verticesSize = (uint32_t)vertices.size();
+      m_indicesSize = (uint32_t)indices.size();
+    };
 
     std::shared_ptr<Buffer> VertexBuffer::getVertexBuffer() const {
       return m_vertexBuffer;

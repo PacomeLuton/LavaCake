@@ -11,6 +11,7 @@ namespace LavaCake {
     public:
 
       VertexBuffer(const Queue& queue, CommandBuffer& cmdBuff, const std::vector<std::shared_ptr<LavaCake::Geometry::Mesh_t>>& m, uint32_t binding = 0, VkVertexInputRate inputRate = VK_VERTEX_INPUT_RATE_VERTEX, VkBufferUsageFlags otherUsage = VkBufferUsageFlags(0));
+      VertexBuffer(const Queue& queue, CommandBuffer& cmdBuff, LavaCake::Geometry::Mesh_t& m, uint32_t binding = 0, VkVertexInputRate inputRate = VK_VERTEX_INPUT_RATE_VERTEX, VkBufferUsageFlags otherUsage = VkBufferUsageFlags(0));
 
       std::shared_ptr<Buffer> getVertexBuffer() const;
 
