@@ -1,5 +1,5 @@
 #pragma once
-#include "mesh.h"
+#include <LavaCake/Geometry/mesh.h>
 #include <LavaCake/Math/basics.h>
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -232,7 +232,6 @@ namespace LavaCake {
 
 			std::vector<primitiveFormat> description = { POS3 };
 
-
 			if (attribs.normals.size() != 0 && load_normal) {
 				description.push_back(NORM3);
 			}
@@ -347,5 +346,160 @@ namespace LavaCake {
 			return { {mesh, indices} ,description };
 		}
 	
+
+		struct vertices_tmp_t {
+			uint32_t final_index = 0;
+			int original_index = 0;
+			int texture_index = 0;
+			int normal_index = 0;
+		};
+
+		std::vector<TriangleIndexedMesh> LoadSceneFromObjFile(std::string filename, bool load_normal = true, bool load_UV =true){
+
+
+			std::vector<TriangleIndexedMesh> res;
+			// Load model
+			tinyobj::attrib_t                attribs;
+			std::vector<tinyobj::shape_t>    shapes;
+			std::vector<tinyobj::material_t> materials;
+			std::string                      error;
+
+
+			bool result = tinyobj::LoadObj(&attribs, &shapes, &materials, &error, filename.data());
+			if (!result) {
+				std::cout << "Could not open the '" << filename << "' file.";
+				if (0 < error.size()) {
+					std::cout << " " << error;
+				}
+				std::cout << std::endl;
+				return {};
+			}
+
+			//std::cout<<attribs.vertices.size()/3<<" "<< attribs.normals.size()/3 <<" "<< attribs.texcoords.size()/2<<std::endl;
+			
+			
+			std::vector<primitiveFormat> description = { POS3 };
+			uint32_t strideSize = 3;
+			uint32_t normalOffset = 3;
+			uint32_t UVoffset =  load_normal ? 6 : 3;
+			if (load_normal) {
+				description.push_back(NORM3);
+				strideSize +=3;
+			}
+			if (load_UV) {
+				description.push_back(UV);
+				strideSize +=2;
+			}
+
+
+
+
+			for (auto shape : shapes){
+				std::vector<std::vector<vertices_tmp_t>> indirection(attribs.vertices.size());
+				TriangleIndexedMesh mesh(description);
+
+				//std::cout<<shape.mesh.num_face_vertices.size()<< " " << shape.mesh.indices.size() / 3  << std::endl;
+				uint32_t vertex_count = 0;
+				int debug_counter = 0;
+
+				for(auto index : shape.mesh.indices){
+					
+					if(indirection[index.vertex_index].size() == 0){
+						vertices_tmp_t v = {
+							vertex_count,
+							index.vertex_index,
+							index.texcoord_index,
+							index.normal_index
+						};
+						indirection[index.vertex_index].push_back(v);
+
+						std::vector<float> vertex(strideSize);
+
+						vertex[0] = attribs.vertices[v.original_index*3 ] ;
+						vertex[1] = attribs.vertices[v.original_index*3+1] ;
+						vertex[2] = attribs.vertices[v.original_index*3+2] ;
+
+						if(load_normal){
+							if(v.normal_index != -1){
+								vertex[normalOffset] = attribs.normals[v.normal_index*3] ;
+								vertex[normalOffset+1] = attribs.normals[v.normal_index*3+1] ;
+								vertex[normalOffset+2] = attribs.normals[v.normal_index*3+2] ;
+							}
+						}
+						if(load_UV){
+							if(v.texture_index != -1){
+								vertex[UVoffset] = attribs.texcoords[v.texture_index*2] ;
+								vertex[UVoffset+1] = attribs.texcoords[v.texture_index*2+1] ;
+							}
+						}
+
+						mesh.appendVertex(vertex);
+						mesh.appendIndex(v.final_index);
+						vertex_count++;
+						
+						
+					}else{
+						vertices_tmp_t v;
+						bool found = false;
+						for(uint32_t u = 0; u < indirection[index.vertex_index].size(); u++){
+							v = indirection[index.vertex_index][u];
+							if(v.original_index == index.vertex_index && v.normal_index == index.normal_index && v.texture_index == index.texcoord_index){
+								found = true;
+								break;
+							}
+						}
+
+						if(found){
+							mesh.appendIndex(v.final_index);
+						}
+						else{
+							vertices_tmp_t v = {
+								vertex_count,
+								index.vertex_index,
+								index.texcoord_index,
+								index.normal_index
+							};
+							indirection[index.vertex_index].push_back(v);
+
+							std::vector<float> vertex(strideSize);
+
+							vertex[0] = attribs.vertices[v.original_index*3] ;
+							vertex[1] = attribs.vertices[v.original_index*3+1] ;
+							vertex[2] = attribs.vertices[v.original_index*3+2] ;
+
+							if(load_normal){
+								if(v.normal_index != -1){
+									vertex[normalOffset] = attribs.normals[v.normal_index*3] ;
+									vertex[normalOffset+1] = attribs.normals[v.normal_index*3+1] ;
+									vertex[normalOffset+2] = attribs.normals[v.normal_index*3+2] ;
+								}
+							}
+						
+							if(load_UV){
+								if(v.texture_index != -1){
+									vertex[UVoffset] = attribs.texcoords[v.texture_index*2] ;
+									vertex[UVoffset+1] = attribs.texcoords[v.texture_index*2+1] ;
+								}
+							}
+
+
+							mesh.appendVertex(vertex);
+							mesh.appendIndex(v.final_index);
+							vertex_count++;
+						}
+
+					}
+					debug_counter++;
+				}
+				res.push_back(mesh);
+			}
+			return res;
+		}
+
+
+	
   }
+
+
+  
 }

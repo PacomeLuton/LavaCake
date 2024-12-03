@@ -17,13 +17,13 @@ namespace LavaCake {
        *\brief Add a vertex in the mesh
        *\param vertex a list of float that represent the vertex to be add in the mesh
        */
-      virtual void appendVertex(std::vector<float> vertex) = 0;
+      virtual void appendVertex(const std::vector<float>& vertex) = 0;
       
       /**
        *\brief Add an index in the mesh
        *\param index the index to add in the mesh
        */
-      virtual void appendIndex(uint32_t index) = 0;
+      virtual void appendIndex(const uint32_t& index) = 0;
 
       /**
        *\brief Return the number of float in a vertex
@@ -100,12 +100,12 @@ namespace LavaCake {
         m_vertices = vertices;
       }
 
-      virtual void appendVertex(std::vector<float> vertex) override {
+      virtual void appendVertex(const std::vector<float>& vertex) override {
         if (vertex.size() == m_vertexSize)
           m_vertices.insert(m_vertices.end(), vertex.begin(), vertex.end());
       }
 
-      virtual void appendIndex(uint32_t /*index*/) override {
+      virtual void appendIndex(const uint32_t& /*index*/) override {
       }
 
       virtual size_t vertexSize() const override {
@@ -167,7 +167,7 @@ namespace LavaCake {
       }
 
 
-      virtual void appendIndex(uint32_t index) override {
+      virtual void appendIndex(const uint32_t& index) override {
         this->m_indices.push_back(index);
       }
 
