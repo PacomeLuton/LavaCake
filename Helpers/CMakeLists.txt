@@ -7,6 +7,7 @@ macro(clearShader)
 	set(INPUT_SHADER)
 	set(OUTPUT_SHADER)
 	set(SPV_VERSION)
+	set(DEPENDANCE_SHADER)
 endmacro()
 
 macro(addShader input output)
@@ -21,8 +22,15 @@ macro(addShader input output)
 		set(version spv1.3)
 	endif()
 
+	if (${variadic_count} GREATER 1)
+		list(GET variadic_args 1 dependance)
+	else()
+		set(dependance " ")
+	endif()
+
 	set(SPV_VERSION ${SPV_VERSION} ${version})
-	message(STATUS "Added new rule to convert ${input} to ${output} using ${version}")
+	set(DEPENDANCE_SHADER ${DEPENDANCE_SHADER} ${dependance})
+	message(STATUS "Added new rule to convert ${input} to ${output} using ${version} ${dependance}")
 endmacro()
 
 set(CMAKE_VERBOSE_MAKEFILE on)
@@ -38,6 +46,7 @@ macro(AutoSPIRV TARGET_NAME)
 			list(GET INPUT_SHADER ${val} val1)
 			list(GET OUTPUT_SHADER ${val} val2)
 			list(GET SPV_VERSION ${val} val3)
+			list(GET DEPENDANCE_SHADER ${val} val4)
 			get_property(path GLOBAL PROPERTY HELPERS_PATH)
 
 			set(OUTPUT_FILE ${val2})
@@ -45,14 +54,23 @@ macro(AutoSPIRV TARGET_NAME)
 			
 			set(COMMANDS glslc ${val1} -g -o  ${val2} --target-spv=${val3})
 			
-			
-			add_custom_command(
-				OUTPUT ${OUTPUT_FILE}
-				COMMAND ${COMMANDS}
-				DEPENDS ${val1}
-				COMMENT "AutoSPIRV ${COMMANDS}"
-				VERBATIM
-			)
+			if(NOT ${val4} MATCHES " ")
+				add_custom_command(
+					OUTPUT ${OUTPUT_FILE}
+					COMMAND ${COMMANDS}
+					DEPENDS ${val1} ${val4}
+					COMMENT "AutoSPIRV ${COMMANDS}"
+					VERBATIM
+				)
+			else()
+				add_custom_command(
+					OUTPUT ${OUTPUT_FILE}
+					COMMAND ${COMMANDS}
+					DEPENDS ${val1}
+					COMMENT "AutoSPIRV ${COMMANDS}"
+					VERBATIM
+				)
+			endif()
 
 			set(SHADERS_DEP ${SHADERS_DEP} ${OUTPUT_FILE})
 		endforeach()
