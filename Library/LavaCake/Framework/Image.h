@@ -73,6 +73,7 @@ namespace LavaCake {
 
 
       void createSampler();
+      void createSampler(bool b);
 
       /**
        \brief Map the memory of the Image
