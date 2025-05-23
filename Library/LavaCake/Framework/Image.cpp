@@ -154,6 +154,68 @@ namespace LavaCake {
       }
     }
 
+    void Image::createSampler(bool voxel) {
+      auto device = Device::getDevice();
+      auto logical = device->getLogicalDevice();
+
+      if (!voxel){
+        VkSamplerCreateInfo sampler_create_info = {
+          VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,    // VkStructureType          sType
+          nullptr,                                  // const void             * pNext
+          0,                                        // VkSamplerCreateFlags     flags
+          VK_FILTER_LINEAR,                         // VkFilter                 magFilter
+          VK_FILTER_LINEAR,                         // VkFilter                 minFilter
+          VK_SAMPLER_MIPMAP_MODE_NEAREST,           // VkSamplerMipmapMode      mipmapMode
+          VK_SAMPLER_ADDRESS_MODE_REPEAT,           // VkSamplerAddressMode     addressModeU
+          VK_SAMPLER_ADDRESS_MODE_REPEAT,           // VkSamplerAddressMode     addressModeV
+          VK_SAMPLER_ADDRESS_MODE_REPEAT,           // VkSamplerAddressMode     addressModeW
+          0.0f,// float                    mipLodBias
+          false,// VkBool32                 anisotropyEnable
+          1.0f,// float                    maxAnisotropy
+          false,// VkBool32                 compareEnable
+          VK_COMPARE_OP_ALWAYS,                     // VkCompareOp              compareOp
+          0.0f,// float                    minLod
+          1.0f,// float                    maxLod
+          VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,       // VkBorderColor            borderColor
+          false// VkBool32                 unnormalizedCoordinates
+        };
+
+
+        VkResult result = vkCreateSampler(logical, &sampler_create_info, nullptr, &m_sampler);
+        if (VK_SUCCESS != result) {
+          ErrorCheck::setError("Could not create sampler.");;
+        }
+      }else{
+        VkSamplerCreateInfo sampler_create_info = {
+          VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,    // VkStructureType          sType
+          nullptr,                                  // const void             * pNext
+          0,                                        // VkSamplerCreateFlags     flags
+          VK_FILTER_NEAREST,                         // VkFilter                 magFilter
+          VK_FILTER_NEAREST,                         // VkFilter                 minFilter
+          VK_SAMPLER_MIPMAP_MODE_NEAREST,           // VkSamplerMipmapMode      mipmapMode
+          VK_SAMPLER_ADDRESS_MODE_REPEAT,           // VkSamplerAddressMode     addressModeU
+          VK_SAMPLER_ADDRESS_MODE_REPEAT,           // VkSamplerAddressMode     addressModeV
+          VK_SAMPLER_ADDRESS_MODE_REPEAT,           // VkSamplerAddressMode     addressModeW
+          0.0f,// float                    mipLodBias
+          false,// VkBool32                 anisotropyEnable
+          1.0f,// float                    maxAnisotropy
+          false,// VkBool32                 compareEnable
+          VK_COMPARE_OP_ALWAYS,                     // VkCompareOp              compareOp
+          0.0f,// float                    minLod
+          1.0f,// float                    maxLod
+          VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,       // VkBorderColor            borderColor
+          false// VkBool32                 unnormalizedCoordinates
+        };
+
+
+        VkResult result = vkCreateSampler(logical, &sampler_create_info, nullptr, &m_sampler);
+        if (VK_SUCCESS != result) {
+          ErrorCheck::setError("Could not create sampler.");;
+        }
+      }
+
+    }
+
     void Image::map() {
       Framework::Device* d = LavaCake::Framework::Device::getDevice();
       VkDevice logical = d->getLogicalDevice();
