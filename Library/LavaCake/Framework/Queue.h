@@ -73,7 +73,7 @@ namespace LavaCake {
           else { // Compute and Graphic Queue
             if ((queue_families[index].queueCount > 0) &&
               ((queue_families[index].queueFlags & queueFlags) == queueFlags)) {
-              m_familyIndex = index;
+              m_familyIndex = (queueFlags == VK_QUEUE_COMPUTE_BIT) ? 2 : index;
               return true;
             }
           }

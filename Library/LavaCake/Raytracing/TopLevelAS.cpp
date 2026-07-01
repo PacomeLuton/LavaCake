@@ -12,7 +12,7 @@ namespace LavaCake {
         instance.instanceCustomIndex = instanceID;
         instance.mask = 0xFF;
         instance.instanceShaderBindingTableRecordOffset = hitGroupOffset;
-        instance.flags = VK_GEOMETRY_INSTANCE_FORCE_NO_OPAQUE_BIT_KHR;
+        instance.flags = 0;
         instance.accelerationStructureReference = bottomLevelAS->getDeviceAddress();
         m_AccelerationStructureInstances.push_back(instance);
 
@@ -132,7 +132,7 @@ namespace LavaCake {
 
           cmdBuff.submit(queue, {}, {});
 
-          cmdBuff.wait(UINT32_MAX);
+          cmdBuff.wait(UINT64_MAX);
           cmdBuff.resetFence();
         }
 
@@ -210,6 +210,30 @@ namespace LavaCake {
           cmdBuff.wait(UINT32_MAX);
           cmdBuff.resetFence();
         }
+      }
+
+      void TopLevelAccelerationStructure::update(Framework::CommandBuffer& cmdBuff){
+        Framework::Device* d = Framework::Device::getDevice();
+        VkDevice logical = d->getLogicalDevice();
+        VkPhysicalDevice phyDevice = d->getPhysicalDevice();
+
+        VkAccelerationStructureBuildRangeInfoKHR accelerationStructureBuildRangeInfo{};
+        accelerationStructureBuildRangeInfo.primitiveCount = uint32_t(m_AccelerationStructureInstances.size());
+        accelerationStructureBuildRangeInfo.primitiveOffset = 0;
+        accelerationStructureBuildRangeInfo.firstVertex = 0;
+        accelerationStructureBuildRangeInfo.transformOffset = 0;
+        m_accelerationBuildStructureRangeInfos = { &accelerationStructureBuildRangeInfo };
+
+        m_accelerationBuildGeometryInfo.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR;
+        m_accelerationBuildGeometryInfo.srcAccelerationStructure = m_accelerationStructure;
+
+
+        vkCmdBuildAccelerationStructuresKHR(
+            cmdBuff.getHandle(),
+            1,
+            &m_accelerationBuildGeometryInfo,
+            m_accelerationBuildStructureRangeInfos.data());
+
       }
   }
 }

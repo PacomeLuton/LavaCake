@@ -19,6 +19,14 @@ namespace LavaCake {
     class Image {
     public:
 
+      Image(){
+        m_image = VK_NULL_HANDLE;
+        m_imageMemory = VK_NULL_HANDLE;
+        m_imageView = VK_NULL_HANDLE;
+        m_sampler = VK_NULL_HANDLE;
+        m_mappedMemory = nullptr;
+      };
+
       /**
        \brief Create an image
        \param witdh the witdth of the image
@@ -69,6 +77,35 @@ namespace LavaCake {
         i.m_sampler = VK_NULL_HANDLE;
         i.m_mappedMemory = nullptr;
 
+      };
+
+      Image& operator=(Image&& i) noexcept {
+
+        if (this != &i){
+        m_width = i.m_width;
+        m_height = i.m_height;
+        m_depth = i.m_depth;
+        m_format = i.m_format;
+
+        m_layout = i.m_layout;
+        m_stage = i.m_stage;
+        m_aspect = i.m_aspect;
+
+        m_image = i.m_image;
+        m_imageMemory = i.m_imageMemory;
+        m_imageView = i.m_imageView;
+        m_sampler = i.m_sampler;
+        m_cubemap = i.m_cubemap;
+        m_mappedMemory = i.m_mappedMemory;
+
+        i.m_image = VK_NULL_HANDLE;
+        i.m_imageMemory = VK_NULL_HANDLE;
+        i.m_imageView = VK_NULL_HANDLE;
+        i.m_sampler = VK_NULL_HANDLE;
+        i.m_mappedMemory = nullptr;
+        }
+
+        return *this;
       };
 
 

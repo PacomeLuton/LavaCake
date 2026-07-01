@@ -18,7 +18,7 @@ namespace LavaCake {
 
       const uint32_t handleSize = rayTracingPipelineProperties.shaderGroupHandleSize;
       const uint32_t handleSizeAligned = alignedSize(rayTracingPipelineProperties.shaderGroupHandleSize, rayTracingPipelineProperties.shaderGroupHandleAlignment);
-      const uint32_t groupCount = static_cast<uint32_t>(m_rayGen.size() + m_miss.size() + m_hitGroup.size());
+      const uint32_t groupCount = static_cast<uint32_t>(m_rayGen.size() + m_miss.size() + m_hitGroup.size() + m_callable.size());
       const uint32_t sbtSize = groupCount * handleSizeAligned;
 
       std::vector<uint8_t> shaderHandleStorage(sbtSize);
@@ -26,34 +26,36 @@ namespace LavaCake {
 
       // Create buffer to hold all shader handles for the SBT
       
-      void* raygenMem;
-      m_raygenBuffer = std::make_shared<Framework::Buffer>(handleSize * m_rayGen.size(), VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VkMemoryPropertyFlagBits(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
-      m_raygenShaderBindingTable = {};
-      m_raygenShaderBindingTable.deviceAddress = m_raygenBuffer->getBufferDeviceAddress();
-      m_raygenShaderBindingTable.stride = handleSizeAligned;
-      m_raygenShaderBindingTable.size = m_rayGen.size() * handleSizeAligned;
-      vkMapMemory(logical, m_raygenBuffer->getMemory(), 0, VK_WHOLE_SIZE, 0, &raygenMem);
+      const VkBufferUsageFlags sbtUsage = VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+      const VkMemoryPropertyFlags sbtMemory = VkMemoryPropertyFlagBits(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-      void* missMem;
-      m_missBuffer = std::make_shared<Framework::Buffer>(handleSize * m_miss.size(), VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VkMemoryPropertyFlagBits(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
-      m_missShaderBindingTable = {};
-      m_missShaderBindingTable.deviceAddress = m_missBuffer->getBufferDeviceAddress();
-      m_missShaderBindingTable.stride = handleSizeAligned;
-      m_missShaderBindingTable.size = m_miss.size() * handleSizeAligned;
-      vkMapMemory(logical, m_missBuffer->getMemory(), 0, VK_WHOLE_SIZE, 0, &missMem);
+      auto allocSbtBuffer = [&](std::shared_ptr<Framework::Buffer>& buf, VkStridedDeviceAddressRegionKHR& region,
+                                const std::vector<entry>& entries) -> void* {
+        if (entries.empty()) return nullptr;
+        buf = std::make_shared<Framework::Buffer>(handleSize * entries.size(), sbtUsage, sbtMemory);
+        region = {};
+        region.deviceAddress = buf->getBufferDeviceAddress();
+        region.stride        = handleSizeAligned;
+        region.size          = entries.size() * handleSizeAligned;
+        void* mem = nullptr;
+        vkMapMemory(logical, buf->getMemory(), 0, VK_WHOLE_SIZE, 0, &mem);
+        return mem;
+      };
 
-      void* hitMem;
-      m_hitBuffer = std::make_shared<Framework::Buffer>(handleSize * m_hitGroup.size(), VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VkMemoryPropertyFlagBits(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
-      m_hitShaderBindingTable = {};
-      m_hitShaderBindingTable.deviceAddress = m_hitBuffer->getBufferDeviceAddress();
-      m_hitShaderBindingTable.stride = handleSizeAligned;
-      m_hitShaderBindingTable.size = m_hitGroup.size() * handleSizeAligned;
-      vkMapMemory(logical, m_hitBuffer->getMemory(), 0, VK_WHOLE_SIZE, 0, &hitMem);
+      void* raygenMem   = allocSbtBuffer(m_raygenBuffer,   m_raygenShaderBindingTable,   m_rayGen);
+      void* missMem     = allocSbtBuffer(m_missBuffer,     m_missShaderBindingTable,     m_miss);
+      void* hitMem      = allocSbtBuffer(m_hitBuffer,      m_hitShaderBindingTable,      m_hitGroup);
+      void* callableMem = allocSbtBuffer(m_callableBuffer, m_callableShaderBindingTable, m_callable);
 
       // Copy handles
-      memcpy(raygenMem, shaderHandleStorage.data(), handleSize * m_rayGen.size());
-      memcpy(missMem, shaderHandleStorage.data() + handleSizeAligned * m_rayGen.size(), handleSize * m_miss.size());
-      memcpy(hitMem, shaderHandleStorage.data() + handleSizeAligned * (m_rayGen.size() + m_miss.size()), handleSize * m_hitGroup.size());
+      if (raygenMem)
+        memcpy(raygenMem,   shaderHandleStorage.data() + handleSizeAligned * 0,                                                    handleSize * m_rayGen.size());
+      if (missMem)
+        memcpy(missMem,     shaderHandleStorage.data() + handleSizeAligned * m_rayGen.size(),                                      handleSize * m_miss.size());
+      if (hitMem)
+        memcpy(hitMem,      shaderHandleStorage.data() + handleSizeAligned * (m_rayGen.size() + m_miss.size()),                    handleSize * m_hitGroup.size());
+      if (callableMem)
+        memcpy(callableMem, shaderHandleStorage.data() + handleSizeAligned * (m_rayGen.size() + m_miss.size() + m_hitGroup.size()), handleSize * m_callable.size());
     }
   }
 }

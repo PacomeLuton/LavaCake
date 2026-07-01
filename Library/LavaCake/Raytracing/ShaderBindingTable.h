@@ -30,6 +30,12 @@ namespace LavaCake {
         m_hitGroup.push_back({ groupIndex, inlineData });
       }
 
+      void addCallableShader(uint32_t                          groupIndex,
+        const std::vector<unsigned char>& inlineData = {})
+      {
+        m_callable.push_back({ groupIndex, inlineData });
+      }
+
       void compile(const Framework::Queue& queue, Framework::CommandBuffer& cmdBuff, VkPipeline raytracingPipeline);
 
       const VkStridedDeviceAddressRegionKHR& raygenShaderBindingTable() const {
@@ -45,7 +51,7 @@ namespace LavaCake {
       }
       
       
-      const VkStridedDeviceAddressRegionKHR callableShaderBindingTable() const{
+      const VkStridedDeviceAddressRegionKHR& callableShaderBindingTable() const{
         return m_callableShaderBindingTable;
       }
 
@@ -64,12 +70,10 @@ namespace LavaCake {
         return (value + alignment - 1) & ~(alignment - 1);
       }
 
-      // Ray generation shader entries
       std::vector<entry> m_rayGen;
-      /// Miss shader entries
       std::vector<entry> m_miss;
-      /// Hit group entries
       std::vector<entry> m_hitGroup;
+      std::vector<entry> m_callable;
 
 
       VkStridedDeviceAddressRegionKHR m_raygenShaderBindingTable = VkStridedDeviceAddressRegionKHR();
@@ -80,12 +84,14 @@ namespace LavaCake {
       uint32_t m_rayGenEntrySize = 0;
       uint32_t m_missEntrySize = 0;
       uint32_t m_hitGroupEntrySize = 0;
+      uint32_t m_callableEntrySize = 0;
 
       VkDeviceSize m_sbtSize;
-      
-      std::shared_ptr < Framework::Buffer > m_raygenBuffer;
-      std::shared_ptr < Framework::Buffer > m_missBuffer;
-      std::shared_ptr < Framework::Buffer > m_hitBuffer;
+
+      std::shared_ptr<Framework::Buffer> m_raygenBuffer;
+      std::shared_ptr<Framework::Buffer> m_missBuffer;
+      std::shared_ptr<Framework::Buffer> m_hitBuffer;
+      std::shared_ptr<Framework::Buffer> m_callableBuffer;
     };
 
   }

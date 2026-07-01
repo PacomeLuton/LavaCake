@@ -31,6 +31,8 @@ namespace LavaCake {
 
 		void endHitGroup();
 
+		void addCallableModule(const CallableShaderModule& module);
+
 		void compile(const Framework::Queue& queue, Framework::CommandBuffer& cmdBuff);
 
 		void trace(Framework::CommandBuffer& cmdbuff, uint32_t dimX, uint32_t dimY = 1.0, uint32_t dimZ = 1.0);

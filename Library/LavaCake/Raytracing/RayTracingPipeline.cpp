@@ -12,22 +12,17 @@ namespace LavaCake {
 					return;
 				}
 
-				VkPipelineShaderStageCreateInfo stageCreate;
+				VkPipelineShaderStageCreateInfo stageCreate{};
 				stageCreate.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-				stageCreate.pNext = nullptr;
 				stageCreate.stage = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
 				stageCreate.module = module.getStageParameter().shaderModule;
-				// This member has to be 'main', regardless of the actual entry point of the shader
-				stageCreate.pName = "main";
-				stageCreate.flags = 0;
-				stageCreate.pSpecializationInfo = nullptr;
+				stageCreate.pName = module.getStageParameter().entryPointName;
 
 				m_shaderStages.emplace_back(stageCreate);
 				uint32_t shaderIndex = static_cast<uint32_t>(m_shaderStages.size() - 1);
 
-				VkRayTracingShaderGroupCreateInfoKHR groupInfo;
+				VkRayTracingShaderGroupCreateInfoKHR groupInfo{};
 				groupInfo.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
-				groupInfo.pNext = nullptr;
 				groupInfo.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
 				groupInfo.generalShader = shaderIndex;
 				groupInfo.closestHitShader = VK_SHADER_UNUSED_KHR;
@@ -47,22 +42,17 @@ namespace LavaCake {
 					return;
 				}
 
-				VkPipelineShaderStageCreateInfo stageCreate;
+				VkPipelineShaderStageCreateInfo stageCreate{};
 				stageCreate.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-				stageCreate.pNext = nullptr;
 				stageCreate.stage = VK_SHADER_STAGE_MISS_BIT_KHR;
 				stageCreate.module = module.getStageParameter().shaderModule;
-				// This member has to be 'main', regardless of the actual entry point of the shader
-				stageCreate.pName = "main";
-				stageCreate.flags = 0;
-				stageCreate.pSpecializationInfo = nullptr;
+				stageCreate.pName = module.getStageParameter().entryPointName;
 
 				m_shaderStages.emplace_back(stageCreate);
 				uint32_t shaderIndex = static_cast<uint32_t>(m_shaderStages.size() - 1);
 
-				VkRayTracingShaderGroupCreateInfoKHR groupInfo;
+				VkRayTracingShaderGroupCreateInfoKHR groupInfo{};
 				groupInfo.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
-				groupInfo.pNext = nullptr;
 				groupInfo.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
 				groupInfo.generalShader = shaderIndex;
 				groupInfo.closestHitShader = VK_SHADER_UNUSED_KHR;
@@ -80,9 +70,8 @@ namespace LavaCake {
 					return;
 				}
 
-				VkRayTracingShaderGroupCreateInfoKHR groupInfo;
+				VkRayTracingShaderGroupCreateInfoKHR groupInfo{};
 				groupInfo.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
-				groupInfo.pNext = nullptr;
 				groupInfo.type = type;
 				groupInfo.generalShader = VK_SHADER_UNUSED_KHR;
 				groupInfo.closestHitShader = VK_SHADER_UNUSED_KHR;
@@ -99,14 +88,11 @@ namespace LavaCake {
 					Framework::ErrorCheck::setError("No open hitgroup");
 					return;
 				}
-				VkPipelineShaderStageCreateInfo stageCreate;
+				VkPipelineShaderStageCreateInfo stageCreate{};
 				stageCreate.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-				stageCreate.pNext = nullptr;
 				stageCreate.stage =  module.getStageParameter().shaderStage;
 				stageCreate.module = module.getStageParameter().shaderModule;
 				stageCreate.pName =  module.getStageParameter().entryPointName;
-				stageCreate.flags = 0;
-				stageCreate.pSpecializationInfo = nullptr;
 
 				m_shaderStages.emplace_back(stageCreate);
 				uint32_t shaderIndex = static_cast<uint32_t>(m_shaderStages.size() - 1);
@@ -118,14 +104,11 @@ namespace LavaCake {
 					Framework::ErrorCheck::setError("No open hitgroup");
 					return;
 				}
-				VkPipelineShaderStageCreateInfo stageCreate;
+				VkPipelineShaderStageCreateInfo stageCreate{};
 				stageCreate.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-				stageCreate.pNext = nullptr;
 				stageCreate.stage =  module.getStageParameter().shaderStage;
 				stageCreate.module = module.getStageParameter().shaderModule;
 				stageCreate.pName =  module.getStageParameter().entryPointName;
-				stageCreate.flags = 0;
-				stageCreate.pSpecializationInfo = nullptr;
 
 				m_shaderStages.emplace_back(stageCreate);
 				uint32_t shaderIndex = static_cast<uint32_t>(m_shaderStages.size() - 1);
@@ -137,18 +120,44 @@ namespace LavaCake {
 					Framework::ErrorCheck::setError("No open hitgroup");
 					return;
 				}
-				VkPipelineShaderStageCreateInfo stageCreate;
+				VkPipelineShaderStageCreateInfo stageCreate{};
 				stageCreate.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-				stageCreate.pNext = nullptr;
 				stageCreate.stage =  module.getStageParameter().shaderStage;
 				stageCreate.module = module.getStageParameter().shaderModule;
 				stageCreate.pName =  module.getStageParameter().entryPointName;
-				stageCreate.flags = 0;
-				stageCreate.pSpecializationInfo = nullptr;
 
 				m_shaderStages.emplace_back(stageCreate);
 				uint32_t shaderIndex = static_cast<uint32_t>(m_shaderStages.size() - 1);
 				m_shaderGroups[m_shaderGroups.size() - 1].intersectionShader = shaderIndex;
+			}
+
+			void RayTracingPipeline::addCallableModule(const CallableShaderModule& module) {
+				if (m_isHitGroupOpen)
+				{
+					Framework::ErrorCheck::setError("Cannot add callable stage when hit group open");
+					return;
+				}
+
+				VkPipelineShaderStageCreateInfo stageCreate{};
+				stageCreate.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+				stageCreate.stage = VK_SHADER_STAGE_CALLABLE_BIT_KHR;
+				stageCreate.module = module.getStageParameter().shaderModule;
+				stageCreate.pName = module.getStageParameter().entryPointName;
+
+				m_shaderStages.emplace_back(stageCreate);
+				uint32_t shaderIndex = static_cast<uint32_t>(m_shaderStages.size() - 1);
+
+				VkRayTracingShaderGroupCreateInfoKHR groupInfo{};
+				groupInfo.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
+				groupInfo.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+				groupInfo.generalShader = shaderIndex;
+				groupInfo.closestHitShader = VK_SHADER_UNUSED_KHR;
+				groupInfo.anyHitShader = VK_SHADER_UNUSED_KHR;
+				groupInfo.intersectionShader = VK_SHADER_UNUSED_KHR;
+				m_shaderGroups.emplace_back(groupInfo);
+
+				m_ShaderBindingTable.addCallableShader(m_currentGroupIndex, {});
+				m_currentGroupIndex++;
 			}
 
 			void RayTracingPipeline::endHitGroup() {
@@ -192,14 +201,11 @@ namespace LavaCake {
 				VkResult code = vkCreateRayTracingPipelinesKHR(logical, VK_NULL_HANDLE, VK_NULL_HANDLE, (uint32_t)pipelineInfos.size(), pipelineInfos.data(), nullptr, pipelines.data());
 				m_pipeline = pipelines[0];
 
-
-
 				if (code != VK_SUCCESS)
 				{
-					//throw std::logic_error("rt vkCreateRayTracingPipelines failed");
+					Framework::ErrorCheck::setError("vkCreateRayTracingPipelinesKHR failed");
+					return;
 				}
-
-				std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
 				m_ShaderBindingTable.compile(queue, cmdBuff, m_pipeline);
 
@@ -208,15 +214,12 @@ namespace LavaCake {
 			void RayTracingPipeline::trace(Framework::CommandBuffer& cmdbuff, uint32_t dimX, uint32_t dimY, uint32_t dimZ) {
 				vkCmdBindPipeline(cmdbuff.getHandle(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_pipeline);
 
-				
-				VkStridedDeviceAddressRegionKHR callableShaderSbtEntry{};
-                
 				vkCmdTraceRaysKHR(
 					cmdbuff.getHandle(),
 					&m_ShaderBindingTable.raygenShaderBindingTable(),
 					&m_ShaderBindingTable.missShaderBindingTable(),
 					&m_ShaderBindingTable.hitShaderBindingTable(),
-					&callableShaderSbtEntry,
+					&m_ShaderBindingTable.callableShaderBindingTable(),
 					dimX,
 					dimY,
 					dimZ);

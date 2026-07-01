@@ -14,11 +14,19 @@ namespace LavaCake {
 
 			void addVertexBuffer(std::shared_ptr<Framework::VertexBuffer> vertexBuffer, std::shared_ptr < Framework::Buffer> transformBuffer, bool opaque = true);
 
+			void addMesh(
+				const Framework::Buffer& vertexBuffer,
+				const Framework::Buffer& indexBuffer,
+				const uint nbVertex, const uint nbTriangle,
+				const Framework::Buffer& transformBuffer , bool opaque );
+
 			void addAabbBuffer(uint64_t aabbBufferDeviceAdressse, int primitiveCount = 1, bool opaque = true);
 
-			void allocate(const Framework::Queue& queue, Framework::CommandBuffer& cmdBuff, bool allowUpdate = false);
+			void allocate(const Framework::Queue& queue, Framework::CommandBuffer& cmdBuff, bool allowUpdate = false, bool fastBuild = true);
 
-			void update(const Framework::Queue& queue, Framework::CommandBuffer& cmdBuff);
+			void update(const Framework::Queue& queue, Framework::CommandBuffer& cmdBuff, bool rebuild = false);
+			void update(Framework::CommandBuffer& cmdBuff, bool rebuild = false);
+
 
 			void addVertexBuffer( const Framework::VertexBuffer& vertexBuffer, const Framework::Buffer& transformBuffer , bool opaque );
 
@@ -50,6 +58,7 @@ namespace LavaCake {
 			}
 
 		private:
+			bool m_fastBuild;
 
 			uint32_t m_primCount = 0;
 

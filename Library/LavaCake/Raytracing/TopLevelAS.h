@@ -21,6 +21,7 @@ namespace LavaCake {
       void createAccelerationStructure(VkAccelerationStructureTypeKHR type, VkAccelerationStructureBuildSizesInfoKHR buildSizeInfo);
 
       void update(const Framework::Queue& queue, Framework::CommandBuffer& cmdBuff);
+      void update(Framework::CommandBuffer& cmdBuff);
 
 		private : 
 
