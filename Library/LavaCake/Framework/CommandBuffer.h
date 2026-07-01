@@ -97,10 +97,10 @@ namespace LavaCake {
       /**
       \brief Constructor the CommandBuffer class.
       */
-      CommandBuffer() {
+      CommandBuffer(bool compute = false) {
         Device* d = Device::getDevice();
         VkDevice logical = d->getLogicalDevice();
-        VkCommandPool pool = d->getCommandPool();
+        VkCommandPool pool = compute ? d->getCommandPoolCompute() : d->getCommandPool();
 
         VkCommandBufferAllocateInfo command_buffer_allocate_info = {
         VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,   // VkStructureType          sType

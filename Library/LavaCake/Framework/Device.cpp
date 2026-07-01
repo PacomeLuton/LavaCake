@@ -11,7 +11,7 @@ namespace LavaCake {
     };
 #else
     const std::vector<const char*> validationLayers = {
-      "VK_LAYER_KHRONOS_validation"
+    //  "VK_LAYER_KHRONOS_validation"
     };
 #endif
 
@@ -133,6 +133,10 @@ namespace LavaCake {
       uint32_t extensions_count = 0;
       VkResult result = VK_SUCCESS;
 
+      if (deviceProperties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU){
+        return DeviceValidity::DEVICE_INVALID;
+      }
+
       result = vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extensions_count, nullptr);
       if ((result != VK_SUCCESS) ||
         (extensions_count == 0)) {
@@ -205,6 +209,10 @@ namespace LavaCake {
 
     const VkCommandPool& Device::getCommandPool() const {
       return m_commandPool;
+    };
+
+    const VkCommandPool& Device::getCommandPoolCompute() const {
+      return m_commandPoolCompute;
     };
 
     const VkSurfaceKHR& Device::getSurface() const {
@@ -438,10 +446,12 @@ namespace LavaCake {
         }
 
         if (nbGraphicQueue > 0) {
-          requested_queues.push_back({ m_graphicQueues[0].getIndex(), { 1.0f } });
+          std::vector<float> p(nbGraphicQueue,1.0f);
+          requested_queues.push_back({ m_graphicQueues[0].getIndex(), p });
           for (int i = 1; i < nbGraphicQueue; i++) {
             for (int j = 0; j < i; j++) {
               if (m_graphicQueues[i].getIndex() == m_graphicQueues[j].getIndex()) {
+                std::cout << "AHHHHHH" << std::endl;
                 goto endConcGrapics;
               }
             }
@@ -450,24 +460,26 @@ namespace LavaCake {
           }
         }
         if (nbComputeQueue > 0) {
-          if (nbGraphicQueue == 0) {
-            requested_queues.push_back({ m_computeQueues[0].getIndex(),{ 1.0f } });
-          }
-          for (int i = 1; i < nbComputeQueue; i++) {
-            for (int j = 0; j < nbGraphicQueue; j++) {
-              if (m_computeQueues[i].getIndex() == m_graphicQueues[j].getIndex()) {
-                goto 	endConcCompute;
-              }
-            }
+          std::vector<float> p(nbComputeQueue,1.0f);
+          //if (nbGraphicQueue == 0) {
+            requested_queues.push_back({ m_computeQueues[0].getIndex(), p });
+          //}
+          
+          //for (int i = 1; i < nbComputeQueue; i++) {
+          //  for (int j = 0; j < nbGraphicQueue; j++) {
+          //    if (m_computeQueues[i].getIndex() == m_graphicQueues[j].getIndex()) {
+          //      goto 	endConcCompute;
+          //    }
+          //  }
 
-            for (int j = 0; j < i; j++) {
-              if (m_computeQueues[i].getIndex() == m_computeQueues[j].getIndex()) {
-                goto endConcCompute;
-              }
-            }
-            requested_queues.push_back({ m_computeQueues[i].getIndex(),{ 1.0f } });
-          endConcCompute:;
-          }
+          //  for (int j = 0; j < i; j++) {
+          //    if (m_computeQueues[i].getIndex() == m_computeQueues[j].getIndex()) {
+          //      goto endConcCompute;
+          //    }
+          //  }
+          //  requested_queues.push_back({ m_computeQueues[i].getIndex(),{ 1.0f } });
+          //endConcCompute:;
+          //}
         }
 
         if(!headless){
@@ -502,6 +514,8 @@ namespace LavaCake {
             info.Priorities.data()                            // const float                    * pQueuePriorities
             });
         };
+        //float priorities[2] = {1,1};
+        //queue_create_infos = {VkDeviceQueueCreateInfo{VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, nullptr, 0, 0, 2, priorities}};
 
         for (size_t s = 0; s < device_extensions_optional.size(); s++) {
           if (!device.missing[s]) {
@@ -633,13 +647,13 @@ namespace LavaCake {
 
             for (int i = 0; i < nbGraphicQueue; i++) {
               VkQueue queue = VK_NULL_HANDLE;
-              LavaCake::vkGetDeviceQueue(m_logical, m_graphicQueues[i].getIndex(), 0, &queue);
+              LavaCake::vkGetDeviceQueue(m_logical, m_graphicQueues[i].getIndex(), i, &queue);
               m_graphicQueues[i].setHandle(queue);
             }
 
             for (int i = 0; i < nbComputeQueue; i++) {
               VkQueue queue = VK_NULL_HANDLE;
-              LavaCake::vkGetDeviceQueue(m_logical, m_computeQueues[i].getIndex(), 0, &queue);
+              LavaCake::vkGetDeviceQueue(m_logical, m_computeQueues[i].getIndex(), i, &queue);
               m_computeQueues[i].setHandle(queue);
             }
 
@@ -676,6 +690,20 @@ namespace LavaCake {
         ErrorCheck::setError("Could not create command pool.");
         return;
       }
+
+        VkCommandPoolCreateInfo command_pool_create_info2 = {
+        VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,   // VkStructureType              sType
+        nullptr,                                      // const void                 * pNext
+        VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,                                   // VkCommandPoolCreateFlags     flags
+        2                               // uint32_t                     queueFamilyIndex
+      };
+
+      result = vkCreateCommandPool(m_logical, &command_pool_create_info2, nullptr, &m_commandPoolCompute);
+      if (result != VK_SUCCESS) {
+        ErrorCheck::setError("Could not create command pool.");
+        return;
+      }
+
 
     }
 

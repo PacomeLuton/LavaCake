@@ -144,7 +144,7 @@ namespace LavaCake {
       \return the VkCommandPool used by the application
       */
       const VkCommandPool& getCommandPool() const;
-
+      const VkCommandPool& getCommandPoolCompute() const;
       /**
       \brief Retourn the Vulkan surface
       \return the VkSurfaceKHR used by the application
@@ -260,6 +260,7 @@ namespace LavaCake {
 	  VkInstance                                            m_instance = VK_NULL_HANDLE;
 	  VkSurfaceKHR                                          m_presentationSurface = VK_NULL_HANDLE;
 	  VkCommandPool                                         m_commandPool = VK_NULL_HANDLE;
+    VkCommandPool                                         m_commandPoolCompute = VK_NULL_HANDLE;
 	  std::vector<GraphicQueue>	                            m_graphicQueues;
 	  std::vector<ComputeQueue>                             m_computeQueues;
 	  PresentationQueue                                     m_presentQueue;
